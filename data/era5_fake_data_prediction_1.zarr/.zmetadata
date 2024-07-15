@@ -1,0 +1,413 @@
+{
+    "metadata": {
+        ".zattrs": {},
+        ".zgroup": {
+            "zarr_format": 2
+        },
+        "Absolute-Error (Atmospheric Temperature)/.zarray": {
+            "chunks": [
+                8,
+                4,
+                120,
+                61
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f4",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                31,
+                8,
+                240,
+                121
+            ],
+            "zarr_format": 2
+        },
+        "Absolute-Error (Atmospheric Temperature)/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "time",
+                "level",
+                "longitude",
+                "latitude"
+            ]
+        },
+        "Absolute-Error (Surface Temperature)/.zarray": {
+            "chunks": [
+                16,
+                120,
+                61
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f4",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                31,
+                240,
+                121
+            ],
+            "zarr_format": 2
+        },
+        "Absolute-Error (Surface Temperature)/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "time",
+                "longitude",
+                "latitude"
+            ]
+        },
+        "Atmospheric Temperature/.zarray": {
+            "chunks": [
+                8,
+                13,
+                240,
+                121
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f4",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                31,
+                8,
+                240,
+                121
+            ],
+            "zarr_format": 2
+        },
+        "Atmospheric Temperature/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "time",
+                "level",
+                "longitude",
+                "latitude"
+            ],
+            "long_name": "Temperature",
+            "short_name": "t",
+            "standard_name": "air_temperature",
+            "units": "K"
+        },
+        "Averaged Absolute Error (Atmospheric Temperature)/.zarray": {
+            "chunks": [
+                31
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f4",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                31
+            ],
+            "zarr_format": 2
+        },
+        "Averaged Absolute Error (Atmospheric Temperature)/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "time"
+            ]
+        },
+        "Averaged Absolute Error (Surface Temperature)/.zarray": {
+            "chunks": [
+                31
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f4",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                31
+            ],
+            "zarr_format": 2
+        },
+        "Averaged Absolute Error (Surface Temperature)/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "time"
+            ]
+        },
+        "Averaged Squarre Error (Atmospheric Temperature)/.zarray": {
+            "chunks": [
+                31
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f4",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                31
+            ],
+            "zarr_format": 2
+        },
+        "Averaged Squarre Error (Atmospheric Temperature)/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "time"
+            ]
+        },
+        "Averaged Squarre Error (Surface Temperature)/.zarray": {
+            "chunks": [
+                31
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f4",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                31
+            ],
+            "zarr_format": 2
+        },
+        "Averaged Squarre Error (Surface Temperature)/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "time"
+            ]
+        },
+        "Square Error (Atmospheric Temperature)/.zarray": {
+            "chunks": [
+                8,
+                4,
+                120,
+                61
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f4",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                31,
+                8,
+                240,
+                121
+            ],
+            "zarr_format": 2
+        },
+        "Square Error (Atmospheric Temperature)/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "time",
+                "level",
+                "longitude",
+                "latitude"
+            ]
+        },
+        "Square Error (Surface Temperature)/.zarray": {
+            "chunks": [
+                16,
+                120,
+                61
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f4",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                31,
+                240,
+                121
+            ],
+            "zarr_format": 2
+        },
+        "Square Error (Surface Temperature)/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "time",
+                "longitude",
+                "latitude"
+            ]
+        },
+        "Surface Temperature/.zarray": {
+            "chunks": [
+                8,
+                240,
+                121
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f4",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                31,
+                240,
+                121
+            ],
+            "zarr_format": 2
+        },
+        "Surface Temperature/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "time",
+                "longitude",
+                "latitude"
+            ],
+            "long_name": "2 metre temperature",
+            "short_name": "t2m",
+            "units": "K"
+        },
+        "latitude/.zarray": {
+            "chunks": [
+                121
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                121
+            ],
+            "zarr_format": 2
+        },
+        "latitude/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "latitude"
+            ]
+        },
+        "level/.zarray": {
+            "chunks": [
+                13
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<i8",
+            "fill_value": null,
+            "filters": null,
+            "order": "C",
+            "shape": [
+                8
+            ],
+            "zarr_format": 2
+        },
+        "level/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "level"
+            ]
+        },
+        "longitude/.zarray": {
+            "chunks": [
+                240
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                240
+            ],
+            "zarr_format": 2
+        },
+        "longitude/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "longitude"
+            ]
+        },
+        "time/.zarray": {
+            "chunks": [
+                23010
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<i8",
+            "fill_value": null,
+            "filters": null,
+            "order": "C",
+            "shape": [
+                31
+            ],
+            "zarr_format": 2
+        },
+        "time/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "time"
+            ],
+            "calendar": "proleptic_gregorian",
+            "units": "hours since 1959-01-01"
+        }
+    },
+    "zarr_consolidated_format": 1
+}
