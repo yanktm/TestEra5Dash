@@ -4,18 +4,19 @@ layout = html.Div([
     # Division principale pour permettre l'ajout de futurs modules
     html.Div([
         # Grand titre centré
-        html.H1("Comparaison de Graphes", style={'textAlign': 'center', 'padding': '10px', 'margin-bottom': '10px'}),
+        # html.H1("Comparaison de Graphes", style={'textAlign': 'center', 'padding': '10px', 'margin-bottom': '10px'}),
 
         # Division pour les graphiques côte à côte
         html.Div([
+            html.H1("Comparaison de Graphes", style={'textAlign': 'center', 'padding': '10px', 'margin-bottom': '10px'}),
+
             # Division pour Graph1 à gauche
             html.Div([
-                dcc.Graph(id='graph1-plot'),
+                html.Img(id='graph1-plot', style={'width': '100%', 'height': '100%'}),
                 html.Div("Graphique 1", style={'textAlign': 'center', 'fontWeight': 'bold', 'margin-top': '20px'}),
                 html.Div([
                     html.Div([
                         dcc.Dropdown(id='file-dropdown1', options=[], placeholder='Select a file'),
-                        html.Button('PROCESS', id='button1-11', n_clicks=0, style={'margin': '5px'}),
                         html.Button('SELECT DATASET', id='button1-12', n_clicks=0, style={'margin': '5px'}),
                     ]),
                     html.Div([
@@ -23,27 +24,33 @@ layout = html.Div([
                         html.Button('SELECT VARIABLE', id='button1-2', n_clicks=0, style={'margin': '5px'}),
                     ]),
                     html.Div([
-                        html.Label("Time Step:"),
-                        dcc.Input(id='timestep-input1', type='number', value=1, min=0),
-                        html.Span(id='max-timestep1', style={'margin-left': '10px'}),
-                        html.Button('UPDATE', id='button1-3', n_clicks=0, style={'margin': '5px'}),
-                    ]),
+                        dcc.Input(id='latitude-input1', type='number', placeholder='Latitude'),
+                        html.Button('LATITUDE', id='button1-lat', n_clicks=0, style={'margin': '5px'})
+                    ], style={'textAlign': 'center'}),
                     html.Div([
-                        dcc.Dropdown(id='region-dropdown1', options=[], placeholder='Select a region'),
-                        html.Button('SELECT REGION', id='button1-4', n_clicks=0, style={'margin': '5px'}),
-                    ]),
+                        dcc.Input(id='longitude-input1', type='number', placeholder='Longitude'),
+                        html.Button('LONGITUDE', id='button1-lon', n_clicks=0, style={'margin': '5px'})
+                    ], style={'textAlign': 'center'}),
+                    html.Div([
+                        dcc.Input(id='level-input1', type='number', placeholder='Level'),
+                        html.Button('LEVEL', id='button1-level', n_clicks=0, style={'margin': '5px'})
+                    ], style={'textAlign': 'center'}),
+                    html.Div([
+                        dcc.Input(id='timestep-input1', type='number', min=0, placeholder='Timestep'),
+                        html.Button('TIME STEP', id='button1-3', n_clicks=0, style={'margin': '5px'}),
+                        html.Span(id='max-timestep1', style={'margin-left': '10px'})
+                    ], style={'display': 'flex', 'alignItems': 'center'}),
                     html.Button('Generate', id='generate-button1', n_clicks=0, style={'margin': '5px'})
                 ], style={'textAlign': 'center'})
             ], style={'width': '50%', 'display': 'inline-block', 'padding': '10px'}),
             
             # Division pour Graph2 à droite
             html.Div([
-                dcc.Graph(id='graph2-plot'),
+                html.Img(id='graph2-plot', style={'width': '100%', 'height': '100%'}),
                 html.Div("Graphique 2", style={'textAlign': 'center', 'fontWeight': 'bold', 'margin-top': '20px'}),
                 html.Div([
                     html.Div([
                         dcc.Dropdown(id='file-dropdown2', options=[], placeholder='Select a file'),
-                        html.Button('PROCESS', id='button2-11', n_clicks=0, style={'margin': '5px'}),
                         html.Button('SELECT DATASET', id='button2-12', n_clicks=0, style={'margin': '5px'}),
                     ]),
                     html.Div([
@@ -51,19 +58,26 @@ layout = html.Div([
                         html.Button('SELECT VARIABLE', id='button2-2', n_clicks=0, style={'margin': '5px'}),
                     ]),
                     html.Div([
-                        html.Label("Time Step:"),
-                        dcc.Input(id='timestep-input2', type='number', value=1, min=0),
-                        html.Span(id='max-timestep2', style={'margin-left': '10px'}),
-                        html.Button('UPDATE', id='button2-3', n_clicks=0, style={'margin': '5px'}),
-                    ]),
+                        dcc.Input(id='latitude-input2', type='number', placeholder='Latitude'),
+                        html.Button('LATITUDE', id='button2-lat', n_clicks=0, style={'margin': '5px'})
+                    ], style={'textAlign': 'center'}),
                     html.Div([
-                        dcc.Dropdown(id='region-dropdown2', options=[], placeholder='Select a region'),
-                        html.Button('SELECT REGION', id='button2-4', n_clicks=0, style={'margin': '5px'}),
-                    ]),
+                        dcc.Input(id='longitude-input2', type='number', placeholder='Longitude'),
+                        html.Button('LONGITUDE', id='button2-lon', n_clicks=0, style={'margin': '5px'})
+                    ], style={'textAlign': 'center'}),
+                    html.Div([
+                        dcc.Input(id='level-input2', type='number', placeholder='Level'),
+                        html.Button('LEVEL', id='button2-level', n_clicks=0, style={'margin': '5px'})
+                    ], style={'textAlign': 'center'}),
+                    html.Div([
+                        dcc.Input(id='timestep-input2', type='number', min=0, placeholder='Timestep'),
+                        html.Button('TIME STEP', id='button2-3', n_clicks=0, style={'margin': '5px'}),
+                        html.Span(id='max-timestep2', style={'margin-left': '10px'})
+                    ], style={'display': 'flex', 'alignItems': 'center'}),
                     html.Button('Generate', id='generate-button2', n_clicks=0, style={'margin': '5px'})
                 ], style={'textAlign': 'center'})
             ], style={'width': '50%', 'display': 'inline-block', 'padding': '10px'})
-        ], style={'display': 'flex', 'justifyContent': 'center', 'alignItems': 'center', 'height': '80vh'}),
+        ], style={'display': 'flex', 'justifyContent': 'center', 'alignItems': 'center', 'height': '90vh'}),
     ], style={'display': 'flex', 'flex-direction': 'column', 'height': '100vh', 'overflowY': 'scroll'}),
 
     # Division principale pour permettre l'ajout de futurs modules
@@ -75,7 +89,7 @@ layout = html.Div([
         html.Div([
             # Division pour de comparaison au centre
             html.Div([
-                dcc.Graph(id='lower-right-plot'),
+                html.Img(id='lower-right-plot', style={'width': '100%', 'height': '100%'}),
                 html.Div("Comparaison", style={'textAlign': 'center', 'fontWeight': 'bold', 'margin-top': '10px'}),
                 html.Div([
                     html.Button('+', id='button3-1', n_clicks=0, style={'margin': '5px'}),
@@ -86,7 +100,7 @@ layout = html.Div([
                 ], style={'textAlign': 'center'})
             ], style={'width': '100%', 'display': 'inline-block', 'padding': '10px'}),
 
-        ], style={'display': 'flex', 'justifyContent': 'center', 'alignItems': 'center', 'height': '80vh'}),
+        ], style={'display': 'flex', 'justifyContent': 'center', 'alignItems': 'center', 'height': '90vh'}),
     ], style={'display': 'flex', 'flex-direction': 'column', 'height': '100vh', 'overflowY': 'scroll'}),
 
     # Liseuse de fichiers
