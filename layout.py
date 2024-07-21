@@ -78,22 +78,25 @@ layout = html.Div([
 
     # Section pour la comparaison des modèles
     html.Div([
-        html.H2("Métrique de comparaisons des modèles", style={'textAlign': 'center', 'padding': '10px'}),
+        html.H2("Métrique de Comparaison des Modèles", style={'textAlign': 'center', 'padding': '10px'}),
 
-        # Division pour le graphique de comparaison
+        # Division pour les sélections de datasets et variables côte à côte
         html.Div([
-            html.Img(id='lower-right-plot', style={'width': '100%', 'height': 'auto'}),
-            html.Div("Comparaison", style={'textAlign': 'center', 'fontWeight': 'bold', 'margin-top': '10px'}),
             html.Div([
-                html.Button('+', id='button3-1', n_clicks=0, style={'margin': '5px'}),
-                html.Button('+', id='button3-2', n_clicks=0, style={'margin': '5px'}),
-                html.Button('+', id='button3-3', n_clicks=0, style={'margin': '5px'}),
-                html.Button('+', id='button3-4', n_clicks=0, style={'margin': '5px'}),
-                html.Button('Generate', id='generate-button3', n_clicks=0, style={'margin': '5px'})
-            ], style={'textAlign': 'center'})
-        ], style={'width': '100%', 'padding': '10px', 'textAlign': 'center'})
-    ], style={'width': '100%', 'padding': '20px'}),
+                html.Div([
+                    dcc.Dropdown(id=f'dataset{i}-dropdown', options=[], placeholder=f'Select Dataset {i}'),
+                    html.Button('SELECT DATASET', id=f'button-dataset{i}', n_clicks=0, style={'margin': '5px'}),
+                ]),
+                html.Div([
+                    dcc.Dropdown(id=f'dataset{i}-variable-dropdown', options=[], placeholder='Select Variable'),
+                    html.Button('SELECT VARIABLE', id=f'button-variable{i}', n_clicks=0, style={'margin': '5px'}),
+                ]),
+            ], style={'width': '45%', 'display': 'inline-block', 'padding': '10px'}) for i in range(1, 6)
+        ], style={'display': 'flex', 'justifyContent': 'space-around'}),
 
-    # Liseuse de fichiers
-    html.Div(id='file-viewer', style={'padding': '20px', 'border': '1px solid #ddd', 'margin-top': '20px'})
-], style={'padding': '20px', 'overflowY': 'scroll', 'height': '100vh'})
+        # Bouton pour générer la comparaison
+        html.Div([
+            html.Button('Generate Comparison', id='generate-button3', n_clicks=0, style={'margin': '5px'})
+        ], style={'textAlign': 'center', 'padding': '10px'})
+    ], style={'width': '100%', 'padding': '20px'}),
+])

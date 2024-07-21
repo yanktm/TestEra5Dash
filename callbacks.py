@@ -45,7 +45,7 @@ def plot_with_rectangle(dataset, variable, lat, lon, level, time, width):
     bottom_left_lon = lon - half_width
 
     fig, ax = plt.subplots(figsize=(15, 15))
-    if level is not None:
+    if level is not None and 'level' in dataset[variable].dims:
         dataset[variable].sel(level=level).isel(time=time).plot(ax=ax, cmap='coolwarm')
     else:
         dataset[variable].isel(time=time).plot(ax=ax, cmap='coolwarm')
@@ -102,11 +102,27 @@ def register_callbacks(app):
 
     @app.callback(
         Output('lower-right-plot', 'src'),
-        [Input('generate-button3', 'n_clicks')]
+        [Input('generate-button3', 'n_clicks')],
+        [State(f'dataset{i}-dropdown', 'value') for i in range(1, 6)] +
+        [State(f'dataset{i}-variable-dropdown', 'value') for i in range(1, 6)]
     )
-    def update_lower_right_plot(n_clicks):
+    def update_lower_right_plot(n_clicks, *args):
+        datasets = args[:5]
+        variables = args[5:]
         if n_clicks > 0:
-            return {"data": [], "layout": {"title": "Comparaison"}}
+            fig, axs = plt.subplots(3, 2, figsize=(15, 15))
+            axs = axs.flatten()
+            for i, (dataset, variable) in enumerate(zip(datasets, variables)):
+                if dataset and variable:
+                    ds = xr.open_zarr(f'data/{dataset}')
+                    ds[variable].isel(time=0).plot(ax=axs[i], cmap='coolwarm')
+                    axs[i].set_title(f"{variable} (Dataset: {dataset})")
+            buf = BytesIO()
+            plt.savefig(buf, format='png')
+            buf.seek(0)
+            encoded = base64.b64encode(buf.read()).decode('utf-8')
+            plt.close(fig)
+            return f'data:image/png;base64,{encoded}'
         return dash.no_update
 
     @app.callback(
@@ -189,3 +205,35 @@ def register_callbacks(app):
         elif selected_file2:
             return ddsih.DangerouslySetInnerHTML(f'<p>Selected file from dropdown 2: {selected_file2}</p>')
         return ddsih.DangerouslySetInnerHTML('<p>No file selected.</p>')
+
+    def create_file_dropdown_callback(button_id, dropdown_id):
+        @app.callback(
+            Output(dropdown_id, 'options'),
+            [Input(button_id, 'n_clicks')]
+        )
+        def update_file_dropdown(n_clicks):
+            local_path = 'data'
+            if os.path.exists(local_path):
+                files = get_local_files(local_path)
+            else:
+                owner = 'yanktm'
+                repo = 'testEra5dash'
+                path = 'data'
+                files = get_github_repo_contents(owner, repo, path)
+            return files
+
+    def create_variable_dropdown_callback(button_id, file_dropdown_id, variable_dropdown_id):
+        @app.callback(
+            Output(variable_dropdown_id, 'options'),
+            [Input(button_id, 'n_clicks')],
+            [State(file_dropdown_id, 'value')]
+        )
+        def update_variable_dropdown(n_clicks, selected_file):
+            if n_clicks > 0 and selected_file:
+                variables = get_dataset_variables(selected_file)
+                return variables
+            return []
+
+    for i in range(1, 6):
+        create_file_dropdown_callback(f'button-dataset{i}', f'dataset{i}-dropdown')
+        create_variable_dropdown_callback(f'button-variable{i}', f'dataset{i}-dropdown', f'dataset{i}-variable-dropdown')
