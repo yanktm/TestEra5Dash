@@ -4,20 +4,16 @@ import xarray as xr
 import os
 import dash
 import requests
-
-# Chemin du fichier NetCDF (à adapter selon votre arborescence)
-file_path = 'data/title.nc'
-
-# Vérifiez si le fichier existe
-if not os.path.exists(file_path):
-    raise FileNotFoundError(f"Le fichier spécifié n'existe pas : {file_path}")
-
-# Charger les données ERA5
-data = xr.open_dataset(file_path)
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+from io import BytesIO
+import base64
 
 # Simulate getting max timestep from dataset (this should be replaced with actual logic)
 def get_max_timestep(file, variable):
-    return 10  # Replace with actual logic to determine max timestep
+    dataset_path = f'data/{file}'
+    ds = xr.open_zarr(dataset_path)
+    return ds.dims['time'] - 1
 
 def get_github_repo_contents(owner, repo, path='', token=None):
     url = f'https://api.github.com/repos/{owner}/{repo}/contents/{path}'
@@ -30,27 +26,82 @@ def get_github_repo_contents(owner, repo, path='', token=None):
     else:
         return [{"label": "Unable to fetch directory contents.", "value": "error"}]
 
+def get_local_files(path):
+    files = []
+    for file_name in os.listdir(path):
+        if not file_name.startswith('.'):
+            files.append({'label': file_name, 'value': file_name})
+    return files
+
+def get_dataset_variables(file):
+    dataset_path = f'data/{file}'
+    ds = xr.open_zarr(dataset_path)
+    variables = list(ds.data_vars.keys())
+    return [{'label': var, 'value': var} for var in variables]
+
+def plot_with_rectangle(dataset, variable, lat, lon, level, time, width):
+    half_width = width / 2
+    bottom_left_lat = lat - half_width
+    bottom_left_lon = lon - half_width
+
+    fig, ax = plt.subplots(figsize=(15, 15))
+    if level is not None:
+        dataset[variable].sel(level=level).isel(time=time).plot(ax=ax, cmap='coolwarm')
+    else:
+        dataset[variable].isel(time=time).plot(ax=ax, cmap='coolwarm')
+
+    rect = patches.Rectangle((bottom_left_lon, bottom_left_lat), width, width, linewidth=2, edgecolor='red', facecolor='none')
+    ax.add_patch(rect)
+
+    ax.scatter(lon, lat, color='red')
+    ax.annotate(f'(lon: {lon}, lat: {lat})', xy=(lon, lat), xytext=(5, 5), textcoords='offset points', color='black', fontsize=12, ha='center')
+
+    buf = BytesIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)
+    encoded = base64.b64encode(buf.read()).decode('utf-8')
+    plt.close(fig)
+    return f'data:image/png;base64,{encoded}'
+
 def register_callbacks(app):
     @app.callback(
-        Output('graph1-plot', 'figure'),
-        [Input('generate-button1', 'n_clicks')]
+        Output('graph1-plot', 'src'),
+        [Input('generate-button1', 'n_clicks')],
+        [State('file-dropdown1', 'value'),
+         State('variable-dropdown1', 'value'),
+         State('latitude-input1', 'value'),
+         State('longitude-input1', 'value'),
+         State('level-input1', 'value'),
+         State('timestep-input1', 'value')]
     )
-    def update_graph1(n_clicks):
-        if n_clicks > 0:
-            return {"data": [], "layout": {"title": "Graphique 1"}}
+    def update_graph1(n_clicks, file, variable, lat, lon, level, timestep):
+        if n_clicks > 0 and file and variable is not None and lat is not None and lon is not None and timestep is not None:
+            dataset_path = f'data/{file}'
+            ds = xr.open_zarr(dataset_path)
+            image = plot_with_rectangle(ds, variable, lat, lon, level, timestep, width=20)
+            return image
         return dash.no_update
 
     @app.callback(
-        Output('graph2-plot', 'figure'),
-        [Input('generate-button2', 'n_clicks')]
+        Output('graph2-plot', 'src'),
+        [Input('generate-button2', 'n_clicks')],
+        [State('file-dropdown2', 'value'),
+         State('variable-dropdown2', 'value'),
+         State('latitude-input2', 'value'),
+         State('longitude-input2', 'value'),
+         State('level-input2', 'value'),
+         State('timestep-input2', 'value')]
     )
-    def update_graph2(n_clicks):
-        if n_clicks > 0:
-            return {"data": [], "layout": {"title": "Graphique 2"}}
+    def update_graph2(n_clicks, file, variable, lat, lon, level, timestep):
+        if n_clicks > 0 and file and variable is not None and lat is not None and lon is not None and timestep is not None:
+            dataset_path = f'data/{file}'
+            ds = xr.open_zarr(dataset_path)
+            image = plot_with_rectangle(ds, variable, lat, lon, level, timestep, width=20)
+            return image
         return dash.no_update
 
     @app.callback(
-        Output('lower-right-plot', 'figure'),
+        Output('lower-right-plot', 'src'),
         [Input('generate-button3', 'n_clicks')]
     )
     def update_lower_right_plot(n_clicks):
@@ -60,27 +111,35 @@ def register_callbacks(app):
 
     @app.callback(
         Output('file-dropdown1', 'options'),
-        [Input('button1-11', 'n_clicks')]
+        [Input('button1-12', 'n_clicks')]
     )
     def update_file_dropdown1(n_clicks):
         if n_clicks > 0:
-            owner = 'yanktm'
-            repo = 'testEra5dash'
-            path = ''
-            files = get_github_repo_contents(owner, repo, path)
+            local_path = 'data'
+            if os.path.exists(local_path):
+                files = get_local_files(local_path)
+            else:
+                owner = 'yanktm'
+                repo = 'testEra5dash'
+                path = 'data'
+                files = get_github_repo_contents(owner, repo, path)
             return files
         return []
 
     @app.callback(
         Output('file-dropdown2', 'options'),
-        [Input('button2-11', 'n_clicks')]
+        [Input('button2-12', 'n_clicks')]
     )
     def update_file_dropdown2(n_clicks):
         if n_clicks > 0:
-            owner = 'yanktm'
-            repo = 'testEra5dash'
-            path = ''
-            files = get_github_repo_contents(owner, repo, path)
+            local_path = 'data'
+            if os.path.exists(local_path):
+                files = get_local_files(local_path)
+            else:
+                owner = 'yanktm'
+                repo = 'testEra5dash'
+                path = 'data'
+                files = get_github_repo_contents(owner, repo, path)
             return files
         return []
 
@@ -96,6 +155,28 @@ def register_callbacks(app):
         max_timestep1 = get_max_timestep(file1, var1) if file1 and var1 else "N/A"
         max_timestep2 = get_max_timestep(file2, var2) if file2 and var2 else "N/A"
         return f"(max timestep = {max_timestep1})", f"(max timestep = {max_timestep2})"
+
+    @app.callback(
+        Output('variable-dropdown1', 'options'),
+        [Input('button1-12', 'n_clicks')],
+        [State('file-dropdown1', 'value')]
+    )
+    def update_variable_dropdown1(n_clicks, selected_file):
+        if n_clicks > 0 and selected_file:
+            variables = get_dataset_variables(selected_file)
+            return variables
+        return []
+
+    @app.callback(
+        Output('variable-dropdown2', 'options'),
+        [Input('button2-12', 'n_clicks')],
+        [State('file-dropdown2', 'value')]
+    )
+    def update_variable_dropdown2(n_clicks, selected_file):
+        if n_clicks > 0 and selected_file:
+            variables = get_dataset_variables(selected_file)
+            return variables
+        return []
 
     @app.callback(
         Output('file-viewer', 'children'),
