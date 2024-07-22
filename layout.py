@@ -2,11 +2,11 @@ from dash import dcc, html
 
 layout = html.Div([
     # Grand titre pour toute la page
-    html.H1("Comparaison de Graphes et Métriques de Modèles", style={'textAlign': 'center', 'padding': '20px'}),
+    html.H1("Comparaison Graphique et Métriques de Modèles", style={'textAlign': 'center', 'padding': '20px'}),
 
     # Section pour la comparaison des graphes
     html.Div([
-        html.H2("Comparaison de Graphes", style={'textAlign': 'center', 'padding': '10px'}),
+        html.H2("Comparaison Graphique", style={'textAlign': 'center', 'padding': '10px'}),
 
         # Division pour les graphiques côte à côte
         html.Div([
@@ -97,6 +97,11 @@ layout = html.Div([
         # Bouton pour générer la comparaison
         html.Div([
             html.Button('Generate Comparison', id='generate-button3', n_clicks=0, style={'margin': '5px'})
+        ], style={'textAlign': 'center', 'padding': '10px'}),
+
+        # Placeholder for comparison plot
+        html.Div([
+            html.Img(id='comparison-plot', style={'width': '100%', 'height': 'auto'})
         ], style={'textAlign': 'center', 'padding': '10px'})
     ], style={'width': '100%', 'padding': '20px'}),
 ])

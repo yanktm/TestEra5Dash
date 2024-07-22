@@ -3,13 +3,13 @@ import dash_dangerously_set_inner_html as ddsih
 import xarray as xr
 import os
 import dash
-import requests
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from io import BytesIO
 import base64
+import numpy as np
+import requests
 
-# Simulate getting max timestep from dataset (this should be replaced with actual logic)
 def get_max_timestep(file, variable):
     dataset_path = f'data/{file}'
     ds = xr.open_zarr(dataset_path)
@@ -63,6 +63,12 @@ def plot_with_rectangle(dataset, variable, lat, lon, level, time, width):
     plt.close(fig)
     return f'data:image/png;base64,{encoded}'
 
+def calculate_average_absolute_error(ground_truth, prediction):
+    return abs(ground_truth - prediction).mean(dim=['longitude', 'latitude'])
+
+def obtenir_dimensions_sans_time(data):
+    return [dim for dim in data.dims if dim != 'time']
+
 def register_callbacks(app):
     @app.callback(
         Output('graph1-plot', 'src'),
@@ -101,22 +107,36 @@ def register_callbacks(app):
         return dash.no_update
 
     @app.callback(
-        Output('lower-right-plot', 'src'),
+        Output('comparison-plot', 'src'),
         [Input('generate-button3', 'n_clicks')],
         [State(f'dataset{i}-dropdown', 'value') for i in range(1, 6)] +
         [State(f'dataset{i}-variable-dropdown', 'value') for i in range(1, 6)]
     )
-    def update_lower_right_plot(n_clicks, *args):
+    def update_comparison_plot(n_clicks, *args):
         datasets = args[:5]
         variables = args[5:]
         if n_clicks > 0:
-            fig, axs = plt.subplots(3, 2, figsize=(15, 15))
-            axs = axs.flatten()
-            for i, (dataset, variable) in enumerate(zip(datasets, variables)):
+            ground_truth_path = f'data/{datasets[0]}'
+            ground_truth_variable = variables[0]
+            ds_ground_truth = xr.open_zarr(ground_truth_path)
+            ground_truth_data = ds_ground_truth[ground_truth_variable]
+
+            fig, ax = plt.subplots(figsize=(10, 5))
+            for dataset, variable in zip(datasets[1:], variables[1:]):
                 if dataset and variable:
-                    ds = xr.open_zarr(f'data/{dataset}')
-                    ds[variable].isel(time=0).plot(ax=axs[i], cmap='coolwarm')
-                    axs[i].set_title(f"{variable} (Dataset: {dataset})")
+                    ds_prediction = xr.open_zarr(f'data/{dataset}')
+                    prediction_data = ds_prediction[variable]
+                    aae = abs(ground_truth_data - prediction_data)
+                    dimensions = obtenir_dimensions_sans_time(ground_truth_data)
+                    aae_mean = aae.mean(dim=dimensions)
+                    
+                    ax.plot(range(len(aae_mean)), aae_mean, label=f'{dataset}-{variable}')  # Utilisation de range(len(aae_mean)) pour l'axe x
+
+            # ax.set_ylim([7.5, 8.5])  # Cette ligne est commentée pour permettre une échelle naturelle
+            ax.set_ylabel("Averaged Absolute Error")
+            ax.set_xlabel("Time")
+            ax.legend()
+
             buf = BytesIO()
             plt.savefig(buf, format='png')
             buf.seek(0)
