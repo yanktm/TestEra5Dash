@@ -3,6 +3,8 @@ import dash_dangerously_set_inner_html as ddsih
 import xarray as xr
 import os
 import dash
+import matplotlib
+matplotlib.use('Agg')  # Utilisation du backend 'Agg' pour Matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from io import BytesIO
@@ -13,7 +15,7 @@ import requests
 def get_max_timestep(file, variable):
     dataset_path = f'data/{file}'
     ds = xr.open_zarr(dataset_path)
-    return ds.dims['time'] - 1
+    return ds.sizes['time'] - 1
 
 def get_github_repo_contents(owner, repo, path='', token=None):
     url = f'https://api.github.com/repos/{owner}/{repo}/contents/{path}'
@@ -46,7 +48,7 @@ def plot_with_rectangle(dataset, variable, lat, lon, level, time, width):
 
     fig, ax = plt.subplots(figsize=(15, 15))
     if level is not None and 'level' in dataset[variable].dims:
-        dataset[variable].sel(level=level).isel(time=time).plot(ax=ax, cmap='coolwarm')
+        dataset[variable].sel(level=level).isel(time=time).plot(ax=ax, cmap='coolwarm', alpha=0.1)
     else:
         dataset[variable].isel(time=time).plot(ax=ax, cmap='coolwarm')
 
@@ -132,7 +134,6 @@ def register_callbacks(app):
                     
                     ax.plot(range(len(aae_mean)), aae_mean, label=f'{dataset}-{variable}')  # Utilisation de range(len(aae_mean)) pour l'axe x
 
-            # ax.set_ylim([7.5, 8.5])  # Cette ligne est commentée pour permettre une échelle naturelle
             ax.set_ylabel("Averaged Absolute Error")
             ax.set_xlabel("Time")
             ax.legend()
@@ -147,37 +148,33 @@ def register_callbacks(app):
 
     @app.callback(
         Output('file-dropdown1', 'options'),
-        [Input('button1-12', 'n_clicks')]
+        [Input('file-dropdown1', 'value')]
     )
-    def update_file_dropdown1(n_clicks):
-        if n_clicks > 0:
-            local_path = 'data'
-            if os.path.exists(local_path):
-                files = get_local_files(local_path)
-            else:
-                owner = 'yanktm'
-                repo = 'testEra5dash'
-                path = 'data'
-                files = get_github_repo_contents(owner, repo, path)
-            return files
-        return []
+    def update_file_dropdown1(selected_file):
+        local_path = 'data'
+        if os.path.exists(local_path):
+            files = get_local_files(local_path)
+        else:
+            owner = 'yanktm'
+            repo = 'testEra5dash'
+            path = 'data'
+            files = get_github_repo_contents(owner, repo, path)
+        return files
 
     @app.callback(
         Output('file-dropdown2', 'options'),
-        [Input('button2-12', 'n_clicks')]
+        [Input('file-dropdown2', 'value')]
     )
-    def update_file_dropdown2(n_clicks):
-        if n_clicks > 0:
-            local_path = 'data'
-            if os.path.exists(local_path):
-                files = get_local_files(local_path)
-            else:
-                owner = 'yanktm'
-                repo = 'testEra5dash'
-                path = 'data'
-                files = get_github_repo_contents(owner, repo, path)
-            return files
-        return []
+    def update_file_dropdown2(selected_file):
+        local_path = 'data'
+        if os.path.exists(local_path):
+            files = get_local_files(local_path)
+        else:
+            owner = 'yanktm'
+            repo = 'testEra5dash'
+            path = 'data'
+            files = get_github_repo_contents(owner, repo, path)
+        return files
 
     @app.callback(
         [Output('max-timestep1', 'children'),
@@ -194,22 +191,20 @@ def register_callbacks(app):
 
     @app.callback(
         Output('variable-dropdown1', 'options'),
-        [Input('button1-12', 'n_clicks')],
-        [State('file-dropdown1', 'value')]
+        [Input('file-dropdown1', 'value')]
     )
-    def update_variable_dropdown1(n_clicks, selected_file):
-        if n_clicks > 0 and selected_file:
+    def update_variable_dropdown1(selected_file):
+        if selected_file:
             variables = get_dataset_variables(selected_file)
             return variables
         return []
 
     @app.callback(
         Output('variable-dropdown2', 'options'),
-        [Input('button2-12', 'n_clicks')],
-        [State('file-dropdown2', 'value')]
+        [Input('file-dropdown2', 'value')]
     )
-    def update_variable_dropdown2(n_clicks, selected_file):
-        if n_clicks > 0 and selected_file:
+    def update_variable_dropdown2(selected_file):
+        if selected_file:
             variables = get_dataset_variables(selected_file)
             return variables
         return []
@@ -225,6 +220,8 @@ def register_callbacks(app):
         elif selected_file2:
             return ddsih.DangerouslySetInnerHTML(f'<p>Selected file from dropdown 2: {selected_file2}</p>')
         return ddsih.DangerouslySetInnerHTML('<p>No file selected.</p>')
+
+
 
     def create_file_dropdown_callback(button_id, dropdown_id):
         @app.callback(
