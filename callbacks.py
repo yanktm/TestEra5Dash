@@ -72,15 +72,69 @@ def obtenir_dimensions_sans_time(data):
     return [dim for dim in data.dims if dim != 'time']
 
 def register_callbacks(app):
+    # Mise à jour de la liste des fichiers pour les deux dropdowns
+    @app.callback(
+        Output('file-dropdown1', 'options'),
+        Output('file-dropdown2', 'options'),
+        Input('file-dropdown1', 'value'),  # Déclenché une fois au démarrage
+        Input('file-dropdown2', 'value')
+    )
+    def update_file_dropdowns(_1, _2):
+        local_path = 'data'
+        if os.path.exists(local_path):
+            files = get_local_files(local_path)
+        else:
+            owner = 'yanktm'
+            repo = 'testEra5dash'
+            path = 'data'
+            files = get_github_repo_contents(owner, repo, path)
+        return files, files
+
+    # Mise à jour des variables en fonction du fichier sélectionné
+    @app.callback(
+        Output('variable-dropdown1', 'options'),
+        Input('file-dropdown1', 'value')
+    )
+    def update_variable_dropdown1(selected_file):
+        if selected_file:
+            variables = get_dataset_variables(selected_file)
+            return variables
+        return []
+
+    @app.callback(
+        Output('variable-dropdown2', 'options'),
+        Input('file-dropdown2', 'value')
+    )
+    def update_variable_dropdown2(selected_file):
+        if selected_file:
+            variables = get_dataset_variables(selected_file)
+            return variables
+        return []
+
+    # Mise à jour du nombre maximal de timesteps
+    @app.callback(
+        Output('max-timestep1', 'children'),
+        Output('max-timestep2', 'children'),
+        Input('file-dropdown1', 'value'),
+        Input('file-dropdown2', 'value'),
+        Input('variable-dropdown1', 'value'),
+        Input('variable-dropdown2', 'value')
+    )
+    def update_max_timestep(file1, file2, var1, var2):
+        max_timestep1 = get_max_timestep(file1, var1) if file1 and var1 else "N/A"
+        max_timestep2 = get_max_timestep(file2, var2) if file2 and var2 else "N/A"
+        return f"(max timestep = {max_timestep1})", f"(max timestep = {max_timestep2})"
+
+    # Génération des graphiques
     @app.callback(
         Output('graph1-plot', 'src'),
-        [Input('generate-button1', 'n_clicks')],
-        [State('file-dropdown1', 'value'),
-         State('variable-dropdown1', 'value'),
-         State('latitude-input1', 'value'),
-         State('longitude-input1', 'value'),
-         State('level-input1', 'value'),
-         State('timestep-input1', 'value')]
+        Input('generate-button1', 'n_clicks'),
+        State('file-dropdown1', 'value'),
+        State('variable-dropdown1', 'value'),
+        State('latitude-input1', 'value'),
+        State('longitude-input1', 'value'),
+        State('level-input1', 'value'),
+        State('timestep-input1', 'value')
     )
     def update_graph1(n_clicks, file, variable, lat, lon, level, timestep):
         if n_clicks > 0 and file and variable is not None and lat is not None and lon is not None and timestep is not None:
@@ -92,13 +146,13 @@ def register_callbacks(app):
 
     @app.callback(
         Output('graph2-plot', 'src'),
-        [Input('generate-button2', 'n_clicks')],
-        [State('file-dropdown2', 'value'),
-         State('variable-dropdown2', 'value'),
-         State('latitude-input2', 'value'),
-         State('longitude-input2', 'value'),
-         State('level-input2', 'value'),
-         State('timestep-input2', 'value')]
+        Input('generate-button2', 'n_clicks'),
+        State('file-dropdown2', 'value'),
+        State('variable-dropdown2', 'value'),
+        State('latitude-input2', 'value'),
+        State('longitude-input2', 'value'),
+        State('level-input2', 'value'),
+        State('timestep-input2', 'value')
     )
     def update_graph2(n_clicks, file, variable, lat, lon, level, timestep):
         if n_clicks > 0 and file and variable is not None and lat is not None and lon is not None and timestep is not None:
@@ -108,9 +162,37 @@ def register_callbacks(app):
             return image
         return dash.no_update
 
+    # Mise à jour des fichiers et variables pour la comparaison des modèles
+    for i in range(1, 6):
+        @app.callback(
+            Output(f'dataset{i}-variable-dropdown', 'options'),
+            Input(f'dataset{i}-dropdown', 'value')
+        )
+        def update_variable_dropdown(selected_file):
+            if selected_file:
+                variables = get_dataset_variables(selected_file)
+                return variables
+            return []
+
+        @app.callback(
+            Output(f'dataset{i}-dropdown', 'options'),
+            Input(f'dataset{i}-dropdown', 'value')
+        )
+        def update_file_dropdown(_):
+            local_path = 'data'
+            if os.path.exists(local_path):
+                files = get_local_files(local_path)
+            else:
+                owner = 'yanktm'
+                repo = 'testEra5dash'
+                path = 'data'
+                files = get_github_repo_contents(owner, repo, path)
+            return files
+
+    # Génération du graphique de comparaison
     @app.callback(
         Output('comparison-plot', 'src'),
-        [Input('generate-button3', 'n_clicks')],
+        Input('generate-button3', 'n_clicks'),
         [State(f'dataset{i}-dropdown', 'value') for i in range(1, 6)] +
         [State(f'dataset{i}-variable-dropdown', 'value') for i in range(1, 6)]
     )
@@ -145,112 +227,3 @@ def register_callbacks(app):
             plt.close(fig)
             return f'data:image/png;base64,{encoded}'
         return dash.no_update
-
-    @app.callback(
-        Output('file-dropdown1', 'options'),
-        [Input('file-dropdown1', 'value')]
-    )
-    def update_file_dropdown1(selected_file):
-        local_path = 'data'
-        if os.path.exists(local_path):
-            files = get_local_files(local_path)
-        else:
-            owner = 'yanktm'
-            repo = 'testEra5dash'
-            path = 'data'
-            files = get_github_repo_contents(owner, repo, path)
-        return files
-
-    @app.callback(
-        Output('file-dropdown2', 'options'),
-        [Input('file-dropdown2', 'value')]
-    )
-    def update_file_dropdown2(selected_file):
-        local_path = 'data'
-        if os.path.exists(local_path):
-            files = get_local_files(local_path)
-        else:
-            owner = 'yanktm'
-            repo = 'testEra5dash'
-            path = 'data'
-            files = get_github_repo_contents(owner, repo, path)
-        return files
-
-    @app.callback(
-        [Output('max-timestep1', 'children'),
-         Output('max-timestep2', 'children')],
-        [Input('file-dropdown1', 'value'),
-         Input('file-dropdown2', 'value'),
-         Input('variable-dropdown1', 'value'),
-         Input('variable-dropdown2', 'value')]
-    )
-    def update_max_timestep(file1, file2, var1, var2):
-        max_timestep1 = get_max_timestep(file1, var1) if file1 and var1 else "N/A"
-        max_timestep2 = get_max_timestep(file2, var2) if file2 and var2 else "N/A"
-        return f"(max timestep = {max_timestep1})", f"(max timestep = {max_timestep2})"
-
-    @app.callback(
-        Output('variable-dropdown1', 'options'),
-        [Input('file-dropdown1', 'value')]
-    )
-    def update_variable_dropdown1(selected_file):
-        if selected_file:
-            variables = get_dataset_variables(selected_file)
-            return variables
-        return []
-
-    @app.callback(
-        Output('variable-dropdown2', 'options'),
-        [Input('file-dropdown2', 'value')]
-    )
-    def update_variable_dropdown2(selected_file):
-        if selected_file:
-            variables = get_dataset_variables(selected_file)
-            return variables
-        return []
-
-    @app.callback(
-        Output('file-viewer', 'children'),
-        [Input('file-dropdown1', 'value'),
-         Input('file-dropdown2', 'value')]
-    )
-    def display_github_file(selected_file1, selected_file2):
-        if selected_file1:
-            return ddsih.DangerouslySetInnerHTML(f'<p>Selected file from dropdown 1: {selected_file1}</p>')
-        elif selected_file2:
-            return ddsih.DangerouslySetInnerHTML(f'<p>Selected file from dropdown 2: {selected_file2}</p>')
-        return ddsih.DangerouslySetInnerHTML('<p>No file selected.</p>')
-
-
-
-    def create_file_dropdown_callback(button_id, dropdown_id):
-        @app.callback(
-            Output(dropdown_id, 'options'),
-            [Input(button_id, 'n_clicks')]
-        )
-        def update_file_dropdown(n_clicks):
-            local_path = 'data'
-            if os.path.exists(local_path):
-                files = get_local_files(local_path)
-            else:
-                owner = 'yanktm'
-                repo = 'testEra5dash'
-                path = 'data'
-                files = get_github_repo_contents(owner, repo, path)
-            return files
-
-    def create_variable_dropdown_callback(button_id, file_dropdown_id, variable_dropdown_id):
-        @app.callback(
-            Output(variable_dropdown_id, 'options'),
-            [Input(button_id, 'n_clicks')],
-            [State(file_dropdown_id, 'value')]
-        )
-        def update_variable_dropdown(n_clicks, selected_file):
-            if n_clicks > 0 and selected_file:
-                variables = get_dataset_variables(selected_file)
-                return variables
-            return []
-
-    for i in range(1, 6):
-        create_file_dropdown_callback(f'button-dataset{i}', f'dataset{i}-dropdown')
-        create_variable_dropdown_callback(f'button-variable{i}', f'dataset{i}-dropdown', f'dataset{i}-variable-dropdown')
