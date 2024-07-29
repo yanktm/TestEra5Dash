@@ -11,6 +11,7 @@ from io import BytesIO
 import base64
 import numpy as np
 import requests
+import re
 
 def get_max_timestep(file, variable):
     dataset_path = f'data/{file}'
@@ -35,31 +36,47 @@ def get_local_files(path):
             files.append({'label': file_name, 'value': file_name})
     return files
 
-def get_dataset_variables(file):
+def get_filtered_variables(file, include_error=True):
     dataset_path = f'data/{file}'
     ds = xr.open_zarr(dataset_path)
     variables = list(ds.data_vars.keys())
-    return [{'label': var, 'value': var} for var in variables]
+    error_pattern = re.compile(r'error', re.IGNORECASE)
+    
+    if include_error:
+        return [{'label': var, 'value': var} for var in variables if error_pattern.search(var)]
+    else:
+        return [{'label': var, 'value': var} for var in variables if not error_pattern.search(var)]
 
 def plot_with_rectangle(dataset, variable, lat, lon, level, time, width):
     half_width = width / 2
     bottom_left_lat = lat - half_width
     bottom_left_lon = lon - half_width
 
-    fig, ax = plt.subplots(figsize=(15, 15))
+    data = dataset[variable].isel(time=time)
     if level is not None and 'level' in dataset[variable].dims:
-        dataset[variable].sel(level=level).isel(time=time).plot(ax=ax, cmap='coolwarm', alpha=0.1)
-    else:
-        dataset[variable].isel(time=time).plot(ax=ax, cmap='coolwarm')
+        data = data.sel(level=level)
+    
+    data_rotated = data.transpose().values[:, ::-1]  # Transpose et inverse les colonnes pour une rotation de 90° vers la gauche
 
+    fig, ax = plt.subplots(figsize=(10, 5))  # Ajustement de la taille de la figure
+    img = ax.imshow(data_rotated, cmap='coolwarm', aspect='auto', origin='lower')
     rect = patches.Rectangle((bottom_left_lon, bottom_left_lat), width, width, linewidth=2, edgecolor='red', facecolor='none')
     ax.add_patch(rect)
 
     ax.scatter(lon, lat, color='red')
     ax.annotate(f'(lon: {lon}, lat: {lat})', xy=(lon, lat), xytext=(5, 5), textcoords='offset points', color='black', fontsize=12, ha='center')
 
+    ax.set_title(variable)
+    ax.set_xlabel("longitude")
+    ax.set_ylabel("latitude")
+
+    fig.colorbar(img, ax=ax, orientation='vertical', label='2 metre temperature [K]')
+
+    # Ajustement des marges pour éviter les espaces inutiles
+    plt.subplots_adjust(left=0.01, right=0.99, top=0.99, bottom=0.01)
+    
     buf = BytesIO()
-    plt.savefig(buf, format='png')
+    plt.savefig(buf, format='png', bbox_inches='tight', pad_inches=0)
     buf.seek(0)
     encoded = base64.b64encode(buf.read()).decode('utf-8')
     plt.close(fig)
@@ -90,26 +107,48 @@ def register_callbacks(app):
             files = get_github_repo_contents(owner, repo, path)
         return files, files
 
-    # Mise à jour des variables en fonction du fichier sélectionné
+    # Mise à jour des variables en fonction du fichier sélectionné pour les graphes
     @app.callback(
         Output('variable-dropdown1', 'options'),
-        Input('file-dropdown1', 'value')
-    )
-    def update_variable_dropdown1(selected_file):
-        if selected_file:
-            variables = get_dataset_variables(selected_file)
-            return variables
-        return []
-
-    @app.callback(
         Output('variable-dropdown2', 'options'),
+        Input('file-dropdown1', 'value'),
         Input('file-dropdown2', 'value')
     )
-    def update_variable_dropdown2(selected_file):
-        if selected_file:
-            variables = get_dataset_variables(selected_file)
-            return variables
-        return []
+    def update_variable_dropdowns_graphs(file1, file2):
+        def filter_variables(file):
+            if file:
+                return get_filtered_variables(file, include_error=False)
+            return []
+
+        variables1 = filter_variables(file1)
+        variables2 = filter_variables(file2)
+        return variables1, variables2
+
+    # Mise à jour des variables en fonction du fichier sélectionné pour les métriques
+    for i in range(1, 6):
+        @app.callback(
+            Output(f'dataset{i}-variable-dropdown', 'options'),
+            Input(f'dataset{i}-dropdown', 'value')
+        )
+        def update_variable_dropdown_metrics(selected_file):
+            if selected_file:
+                return get_filtered_variables(selected_file, include_error=True)
+            return []
+
+        @app.callback(
+            Output(f'dataset{i}-dropdown', 'options'),
+            Input(f'dataset{i}-dropdown', 'value')
+        )
+        def update_file_dropdown_metrics(_):
+            local_path = 'data'
+            if os.path.exists(local_path):
+                files = get_local_files(local_path)
+            else:
+                owner = 'yanktm'
+                repo = 'testEra5dash'
+                path = 'data'
+                files = get_github_repo_contents(owner, repo, path)
+            return files
 
     # Mise à jour du nombre maximal de timesteps
     @app.callback(
@@ -161,33 +200,6 @@ def register_callbacks(app):
             image = plot_with_rectangle(ds, variable, lat, lon, level, timestep, width=20)
             return image
         return dash.no_update
-
-    # Mise à jour des fichiers et variables pour la comparaison des modèles
-    for i in range(1, 6):
-        @app.callback(
-            Output(f'dataset{i}-variable-dropdown', 'options'),
-            Input(f'dataset{i}-dropdown', 'value')
-        )
-        def update_variable_dropdown(selected_file):
-            if selected_file:
-                variables = get_dataset_variables(selected_file)
-                return variables
-            return []
-
-        @app.callback(
-            Output(f'dataset{i}-dropdown', 'options'),
-            Input(f'dataset{i}-dropdown', 'value')
-        )
-        def update_file_dropdown(_):
-            local_path = 'data'
-            if os.path.exists(local_path):
-                files = get_local_files(local_path)
-            else:
-                owner = 'yanktm'
-                repo = 'testEra5dash'
-                path = 'data'
-                files = get_github_repo_contents(owner, repo, path)
-            return files
 
     # Génération du graphique de comparaison
     @app.callback(
